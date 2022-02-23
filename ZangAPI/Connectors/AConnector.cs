@@ -2,6 +2,9 @@
 using RestSharp;
 using AvayaCPaaS.ConnectionManager;
 using AvayaCPaaS.Exceptions;
+using System.IO;
+using System;
+using System.Configuration;
 
 namespace AvayaCPaaS.Connectors
 {
@@ -27,6 +30,36 @@ namespace AvayaCPaaS.Connectors
             this.HttpProvider = httpProvider;
         }
 
+        public static void VerifyDir(string path)
+        {
+            try
+            {
+                DirectoryInfo dir = new DirectoryInfo(path);
+                if (!dir.Exists)
+                {
+                    dir.Create();
+                }
+            }
+            catch { }
+        }
+
+        public static void Logger(string lines)
+        {
+            string path = ConfigurationManager.AppSettings["CPAAS_LOG_PATH"];
+            VerifyDir(path);
+            // MM-DD-YYYY-logs.txt
+            string fileName = DateTime.Now.Month.ToString() + "-" + DateTime.Now.Day.ToString() + "-" + DateTime.Now.Year.ToString() + "-Logs.txt";
+            try
+            {
+                StreamWriter file = new StreamWriter(path + fileName, true);
+                file.WriteLine(DateTime.Now.ToString() + ": " + lines);
+                file.Close();
+            }
+            catch (Exception) {
+                throw;
+            }
+        }
+
         /// <summary>
         /// Returns the or throw exception.
         /// </summary>
@@ -38,6 +71,7 @@ namespace AvayaCPaaS.Connectors
             var status = (int)response.StatusCode;
 
             if (status >= 400) {
+                Logger(response.Content);
                 throw JsonConvert.DeserializeObject<CPaaSException>(response.Content);
             }
             return JsonConvert.DeserializeObject<T>(response.Content);

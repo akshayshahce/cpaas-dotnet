@@ -195,3 +195,8 @@ will render
   <Hangup schedule="4" reason="rejected" />
 </Response>
 ```
+
+### Log Exception
+
+Exception can be log into file.
+Define your directory path value into variable `CPAAS_LOG_PATH` which is located in the cpaas-dotnet/ZangAPI.Examples/App.config
